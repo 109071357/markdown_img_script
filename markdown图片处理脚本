@@ -1,0 +1,175 @@
+import os
+import re
+import sys
+import glob
+
+def replace_github_image_paths_in_file(md_file_path, new_path_pattern, dry_run=False):
+    """
+    专门替换单个Markdown文件中GitHub图片路径，保留其他外部图片链接
+    
+    参数:
+    - md_file_path: Markdown文件路径
+    - new_path_pattern: 新的路径模式，可以使用 {filename} 占位符
+    - dry_run: 试运行模式，只显示将要替换的内容而不实际修改文件
+    
+    返回:
+    - 成功替换的图片数量
+    """
+    
+    # 检查文件是否存在
+    if not os.path.exists(md_file_path):
+        print(f"错误: 文件 '{md_file_path}' 不存在")
+        return 0
+    
+    try:
+        with open(md_file_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+        
+        # 匹配GitHub图片路径的正则表达式
+        # 只匹配以 https://github.com/ 开头的图片链接
+        github_pattern = r'!\[(.*?)\]\((https://github\.com/[\w\-\.]+/[\w\-\.]+/blob/(?:master|main)/images/([\w\.\-]+))\)'
+        
+        # 查找所有GitHub图片路径
+        github_matches = re.findall(github_pattern, content)
+        
+        if not github_matches:
+            print(f"在文件 '{md_file_path}' 中未找到GitHub图片路径")
+            return 0
+        
+        print(f"在文件 '{md_file_path}' 中找到 {len(github_matches)} 个GitHub图片路径:")
+        
+        # 替换GitHub图片路径
+        new_content = content
+        replacements = []
+        
+        for alt_text, old_path, filename in github_matches:
+            # 构建新路径
+            new_path = new_path_pattern.replace('{filename}', filename)
+            
+            # 记录替换信息
+            replacements.append((old_path, new_path))
+            
+            # 构建新的Markdown图片语法
+            new_markdown = f'![{alt_text}]({new_path})'
+            old_markdown = f'![{alt_text}]({old_path})'
+            
+            # 替换内容
+            new_content = new_content.replace(old_markdown, new_markdown)
+        
+        # 显示替换信息
+        print("\n替换详情:")
+        for i, (old_path, new_path) in enumerate(replacements, 1):
+            print(f"  {i}. {old_path} -> {new_path}")
+        
+        # 检查是否有其他外部图片链接
+        external_pattern = r'!\[.*?\]\((https?://(?!github\.com)[^\)]+)\)'
+        external_matches = re.findall(external_pattern, content)
+        if external_matches:
+            print(f"\n发现 {len(external_matches)} 个外部图片链接 (已保留):")
+            for i, ext_link in enumerate(external_matches, 1):
+                print(f"  {i}. {ext_link}")
+        
+        # 如果不是试运行模式，则写入文件
+        if not dry_run:
+            with open(md_file_path, 'w', encoding='utf-8') as f:
+                f.write(new_content)
+            print(f"\n成功替换了 {len(replacements)} 个GitHub图片路径")
+        else:
+            print(f"\n试运行模式: 将替换 {len(replacements)} 个GitHub图片路径 (未实际修改文件)")
+        
+        return len(replacements)
+        
+    except Exception as e:
+        print(f"处理文件时出错: {e}")
+        return 0
+
+def replace_github_image_paths_in_folder(folder_path, new_path_pattern, dry_run=False):
+    """
+    批量替换文件夹中所有Markdown文件的GitHub图片路径
+    
+    参数:
+    - folder_path: 文件夹路径
+    - new_path_pattern: 新的路径模式，可以使用 {filename} 占位符
+    - dry_run: 试运行模式，只显示将要替换的内容而不实际修改文件
+    
+    返回:
+    - 处理的文件数量和成功替换的图片总数
+    """
+    
+    # 检查文件夹是否存在
+    if not os.path.exists(folder_path):
+        print(f"错误: 文件夹 '{folder_path}' 不存在")
+        return 0, 0
+    
+    # 查找所有Markdown文件
+    md_files = glob.glob(os.path.join(folder_path, "**", "*.md"), recursive=True)
+    if not md_files:
+        md_files = glob.glob(os.path.join(folder_path, "*.md"))
+    
+    if not md_files:
+        print(f"在文件夹 '{folder_path}' 中未找到Markdown文件")
+        return 0, 0
+    
+    print(f"在文件夹 '{folder_path}' 中找到 {len(md_files)} 个Markdown文件:")
+    for i, file_path in enumerate(md_files, 1):
+        print(f"  {i}. {os.path.basename(file_path)}")
+    
+    total_replacements = 0
+    processed_files = 0
+    
+    print("\n开始处理文件:")
+    print("=" * 60)
+    
+    for file_path in md_files:
+        print(f"\n处理文件: {file_path}")
+        replacements = replace_github_image_paths_in_file(file_path, new_path_pattern, dry_run)
+        if replacements > 0:
+            processed_files += 1
+            total_replacements += replacements
+    
+    return processed_files, total_replacements
+
+def main():
+    print("GitHub图片路径替换工具")
+    print("=" * 50)
+    print("注意: 本脚本只会替换GitHub上的图片链接，其他外部图片链接将保留不变")
+    print()
+    
+    # 选择处理模式
+    print("请选择处理模式:")
+    print("1. 处理单个文件")
+    print("2. 批量处理文件夹")
+    mode = input("请输入选择 (1 或 2): ").strip()
+    
+    # 输入新的图片路径模式
+    new_path = input("请输入新的图片路径模式 (使用 {filename} 作为占位符): ").strip()
+    
+    # 询问是否试运行
+    dry_run = input("是否试运行? (y/N): ").strip().lower() == 'y'
+    
+    if mode == "1":
+        # 处理单个文件
+        md_file = input("请输入Markdown文件路径: ").strip()
+        replacements = replace_github_image_paths_in_file(md_file, new_path, dry_run)
+        
+        if replacements > 0:
+            print(f"\n操作完成! 成功替换了 {replacements} 个GitHub图片路径")
+        else:
+            print("\n操作完成! 未找到需要替换的GitHub图片路径")
+    
+    elif mode == "2":
+        # 处理文件夹
+        folder_path = input("请输入文件夹路径: ").strip()
+        processed_files, total_replacements = replace_github_image_paths_in_folder(folder_path, new_path, dry_run)
+        
+        if processed_files > 0:
+            print(f"\n批量处理完成! 在 {processed_files} 个文件中成功替换了 {total_replacements} 个GitHub图片路径")
+        else:
+            print("\n批量处理完成! 未找到需要替换的GitHub图片路径")
+    
+    else:
+        print("错误: 无效的选择，请输入 1 或 2")
+
+# 直接运行版本 - 无需命令行参数
+if __name__ == "__main__":
+    main()

@@ -77,15 +77,17 @@ GitHub图片路径替换工具
 
 #### 示例1：处理单个文件
 
-text
 
 请输入Markdown文件路径: .\域渗透-Delegation.md请输入新的图片路径模式: D:/红队/技术文档/Active-Directory-Pentest-Notes-master/images/{filename}是否试运行? (y/N): n
+<img width="1698" height="506" alt="image" src="https://github.com/user-attachments/assets/201a3ab9-b7ca-4395-84c3-6d0b799370f7" />
+
 
 #### 示例2：批量处理文件夹
 
-text
 
 请输入文件夹路径: D:/技术文档/Markdown文档请输入新的图片路径模式: ./assets/images/{filename}是否试运行? (y/N): y替换效果
+<img width="1716" height="813" alt="image" src="https://github.com/user-attachments/assets/2b09fd83-35e7-4288-bc34-9c9bb98a85ad" />
+
 
 ### 替换前
 
@@ -148,8 +150,6 @@ https://github.com/用户名/仓库名/blob/(master|main)/images/文件名.扩�
   
 4. **编码兼容**：如遇编码错误，请检查文件是否为UTF-8格式
   
-
-故障排除
 
 ### 常见问题
 

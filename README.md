@@ -90,13 +90,12 @@ text
 ### 替换前
 
 
-
+<img width="2123" height="1279" alt="image" src="https://github.com/user-attachments/assets/3fd57354-4aa4-4528-8702-f0f7269269c7" />
 
 
 ### 替换后
 
-
-
+<img width="2141" height="1343" alt="image" src="https://github.com/user-attachments/assets/64effb56-0bbc-4214-933f-b726b053fc07" />
 
 
 ### 🚀 GitHub文档本地化
@@ -129,8 +128,6 @@ text
 ### 匹配规则
 
 脚本使用正则表达式精确匹配GitHub图片路径格式：
-
-text
 
 https://github.com/用户名/仓库名/blob/(master|main)/images/文件名.扩展名
 
